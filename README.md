@@ -24,6 +24,14 @@ go run .
 
 Server starts on `http://localhost:8080`
 
+## Stopping the App
+
+- Locally: press `Ctrl + C` where `go run .` is running.
+- Docker Compose: `Ctrl + C` (foreground) or:
+```bash
+docker-compose down
+```
+
 ## API Endpoints
 
 All endpoints require `X-User-ID` header for user identification.

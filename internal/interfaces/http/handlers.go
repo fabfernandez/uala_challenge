@@ -15,7 +15,6 @@ type Handler struct {
 	followUseCase application.FollowUseCaseInterface
 }
 
-// NewHandler creates a new HTTP handler
 func NewHandler(tweetUseCase application.TweetUseCaseInterface, followUseCase application.FollowUseCaseInterface) *Handler {
 	return &Handler{
 		tweetUseCase:  tweetUseCase,
@@ -23,19 +22,16 @@ func NewHandler(tweetUseCase application.TweetUseCaseInterface, followUseCase ap
 	}
 }
 
-// CreateTweetRequest represents the request to create a tweet
 type CreateTweetRequest struct {
 	Content string `json:"content"`
 }
 
-// FollowUserRequest represents the request to follow a user
 type FollowUserRequest struct {
 	FolloweeID string `json:"followee_id"`
 }
 
-// CreateTweetHandler handles POST /api/v1/tweets
 func (h *Handler) CreateTweetHandler(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from header
+
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
 		http.Error(w, "User ID required in X-User-ID header", http.StatusBadRequest)
@@ -48,7 +44,6 @@ func (h *Handler) CreateTweetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create tweet using use case
 	tweet, err := h.tweetUseCase.CreateTweet(r.Context(), usecases.CreateTweetRequest{
 		UserID:  userID,
 		Content: req.Content,
@@ -71,9 +66,8 @@ func (h *Handler) CreateTweetHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tweet)
 }
 
-// GetTimelineHandler handles GET /api/v1/timeline
 func (h *Handler) GetTimelineHandler(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from header
+
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
 		http.Error(w, "User ID required in X-User-ID header", http.StatusBadRequest)
@@ -93,9 +87,8 @@ func (h *Handler) GetTimelineHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GetUserTweetsHandler handles GET /api/v1/users/tweets
 func (h *Handler) GetUserTweetsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract userID from URL query
+
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
 		http.Error(w, "User ID required", http.StatusBadRequest)
@@ -115,9 +108,8 @@ func (h *Handler) GetUserTweetsHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// FollowUserHandler handles POST /api/v1/follow
 func (h *Handler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from header
+
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
 		http.Error(w, "User ID required in X-User-ID header", http.StatusBadRequest)
@@ -156,9 +148,8 @@ func (h *Handler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UnfollowUserHandler handles POST /api/v1/unfollow
 func (h *Handler) UnfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from header
+
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
 		http.Error(w, "User ID required in X-User-ID header", http.StatusBadRequest)
@@ -192,7 +183,6 @@ func (h *Handler) UnfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// HealthCheckHandler handles GET /api/v1/health
 func (h *Handler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
