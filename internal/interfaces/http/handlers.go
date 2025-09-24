@@ -5,20 +5,20 @@ import (
 	"net/http"
 
 	"uala-challenge/internal/application"
-	"uala-challenge/internal/application/usecases"
+	"uala-challenge/internal/application/services"
 	"uala-challenge/internal/domain"
 )
 
 // Handler handles HTTP requests
 type Handler struct {
-	tweetUseCase  application.TweetUseCaseInterface
-	followUseCase application.FollowUseCaseInterface
+	tweetService  application.TweetServiceInterface
+	followService application.FollowServiceInterface
 }
 
-func NewHandler(tweetUseCase application.TweetUseCaseInterface, followUseCase application.FollowUseCaseInterface) *Handler {
+func NewHandler(tweetService application.TweetServiceInterface, followService application.FollowServiceInterface) *Handler {
 	return &Handler{
-		tweetUseCase:  tweetUseCase,
-		followUseCase: followUseCase,
+		tweetService:  tweetService,
+		followService: followService,
 	}
 }
 
@@ -44,7 +44,7 @@ func (h *Handler) CreateTweetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tweet, err := h.tweetUseCase.CreateTweet(r.Context(), usecases.CreateTweetRequest{
+	tweet, err := h.tweetService.CreateTweet(r.Context(), services.CreateTweetRequest{
 		UserID:  userID,
 		Content: req.Content,
 	})
@@ -74,7 +74,7 @@ func (h *Handler) GetTimelineHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tweets, err := h.followUseCase.GetTimeline(r.Context(), userID)
+	tweets, err := h.followService.GetTimeline(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "Failed to get timeline", http.StatusInternalServerError)
 		return
@@ -95,7 +95,7 @@ func (h *Handler) GetUserTweetsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tweets, err := h.tweetUseCase.GetUserTweets(r.Context(), userID)
+	tweets, err := h.tweetService.GetUserTweets(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "Failed to get user tweets", http.StatusInternalServerError)
 		return
@@ -127,7 +127,7 @@ func (h *Handler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.followUseCase.FollowUser(r.Context(), usecases.FollowUserRequest{
+	err := h.followService.FollowUser(r.Context(), services.FollowUserRequest{
 		FollowerID: userID,
 		FolloweeID: req.FolloweeID,
 	})
@@ -167,7 +167,7 @@ func (h *Handler) UnfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.followUseCase.UnfollowUser(r.Context(), usecases.FollowUserRequest{
+	err := h.followService.UnfollowUser(r.Context(), services.FollowUserRequest{
 		FollowerID: userID,
 		FolloweeID: req.FolloweeID,
 	})

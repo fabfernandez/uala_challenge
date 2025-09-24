@@ -82,7 +82,7 @@ Infrastructure Layer ←──────┘
 ### Layers
 
 - **Domain** (`internal/domain/`): Core business entities and rules
-- **Application** (`internal/application/`): Use cases and business logic
+- **Application** (`internal/application/`): Services and business logic
 - **Infrastructure** (`internal/infrastructure/`): Storage and external services
 - **Interface** (`internal/interfaces/`): HTTP handlers and routing
 
@@ -91,7 +91,7 @@ Infrastructure Layer ←──────┘
 - **In-Memory Storage**: Thread-safe storage for boilerplate (production would use database)
 - **User Identification**: `X-User-ID` header as per requirements
 - **Character Limit**: 280 characters per tweet
-- **Dependency Injection**: Use cases receive dependencies through interfaces
+- **Dependency Injection**: Services receive dependencies through interfaces
 - **Thread Safety**: All storage operations protected with mutex locks
 
 ## Testing
@@ -130,7 +130,7 @@ docker-compose down
 ├── main.go                    # Application entry point
 ├── internal/
 │   ├── domain/               # Core business entities
-│   ├── application/usecases/ # Business logic
+│   ├── application/services/ # Business logic
 │   ├── infrastructure/       # Storage implementations
 │   └── interfaces/http/      # HTTP handlers
 ├── Dockerfile

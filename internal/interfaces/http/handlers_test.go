@@ -8,14 +8,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"uala-challenge/internal/application/usecases"
+	"uala-challenge/internal/application/services"
 	"uala-challenge/internal/domain"
 )
 
-// Mock use cases for testing
-type mockTweetUseCase struct{}
+// Mock services for testing
+type mockTweetService struct{}
 
-func (m *mockTweetUseCase) CreateTweet(ctx context.Context, req usecases.CreateTweetRequest) (*domain.Tweet, error) {
+func (m *mockTweetService) CreateTweet(ctx context.Context, req services.CreateTweetRequest) (*domain.Tweet, error) {
 	if req.Content == "" {
 		return nil, domain.ErrTweetEmpty
 	}
@@ -29,33 +29,33 @@ func (m *mockTweetUseCase) CreateTweet(ctx context.Context, req usecases.CreateT
 	}, nil
 }
 
-func (m *mockTweetUseCase) GetUserTweets(ctx context.Context, userID string) ([]*domain.Tweet, error) {
+func (m *mockTweetService) GetUserTweets(ctx context.Context, userID string) ([]*domain.Tweet, error) {
 	return []*domain.Tweet{
 		{ID: "1", UserID: userID, Content: "Test tweet"},
 	}, nil
 }
 
-type mockFollowUseCase struct{}
+type mockFollowService struct{}
 
-func (m *mockFollowUseCase) FollowUser(ctx context.Context, req usecases.FollowUserRequest) error {
+func (m *mockFollowService) FollowUser(ctx context.Context, req services.FollowUserRequest) error {
 	if req.FollowerID == req.FolloweeID {
 		return domain.ErrCannotFollowSelf
 	}
 	return nil
 }
 
-func (m *mockFollowUseCase) UnfollowUser(ctx context.Context, req usecases.FollowUserRequest) error {
+func (m *mockFollowService) UnfollowUser(ctx context.Context, req services.FollowUserRequest) error {
 	return nil
 }
 
-func (m *mockFollowUseCase) GetTimeline(ctx context.Context, userID string) ([]*domain.Tweet, error) {
+func (m *mockFollowService) GetTimeline(ctx context.Context, userID string) ([]*domain.Tweet, error) {
 	return []*domain.Tweet{
 		{ID: "1", UserID: "other", Content: "Timeline tweet"},
 	}, nil
 }
 
 func TestHandler_CreateTweetHandler(t *testing.T) {
-	handler := NewHandler(&mockTweetUseCase{}, &mockFollowUseCase{})
+	handler := NewHandler(&mockTweetService{}, &mockFollowService{})
 
 	tests := []struct {
 		name           string
@@ -105,7 +105,7 @@ func TestHandler_CreateTweetHandler(t *testing.T) {
 }
 
 func TestHandler_GetTimelineHandler(t *testing.T) {
-	handler := NewHandler(&mockTweetUseCase{}, &mockFollowUseCase{})
+	handler := NewHandler(&mockTweetService{}, &mockFollowService{})
 
 	req := httptest.NewRequest("GET", "/api/v1/timeline", nil)
 	req.Header.Set("X-User-ID", "user123")
@@ -129,7 +129,7 @@ func TestHandler_GetTimelineHandler(t *testing.T) {
 }
 
 func TestHandler_FollowUserHandler(t *testing.T) {
-	handler := NewHandler(&mockTweetUseCase{}, &mockFollowUseCase{})
+	handler := NewHandler(&mockTweetService{}, &mockFollowService{})
 
 	tests := []struct {
 		name           string
@@ -179,7 +179,7 @@ func TestHandler_FollowUserHandler(t *testing.T) {
 }
 
 func TestHandler_GetUserTweetsHandler(t *testing.T) {
-	handler := NewHandler(&mockTweetUseCase{}, &mockFollowUseCase{})
+	handler := NewHandler(&mockTweetService{}, &mockFollowService{})
 
 	tests := []struct {
 		name           string
@@ -235,7 +235,7 @@ func TestHandler_GetUserTweetsHandler(t *testing.T) {
 }
 
 func TestHandler_UnfollowUserHandler(t *testing.T) {
-	handler := NewHandler(&mockTweetUseCase{}, &mockFollowUseCase{})
+	handler := NewHandler(&mockTweetService{}, &mockFollowService{})
 
 	tests := []struct {
 		name           string
@@ -297,7 +297,7 @@ func TestHandler_UnfollowUserHandler(t *testing.T) {
 }
 
 func TestHandler_HealthCheckHandler(t *testing.T) {
-	handler := NewHandler(&mockTweetUseCase{}, &mockFollowUseCase{})
+	handler := NewHandler(&mockTweetService{}, &mockFollowService{})
 
 	req := httptest.NewRequest("GET", "/api/v1/health", nil)
 	w := httptest.NewRecorder()

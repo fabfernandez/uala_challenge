@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"uala-challenge/internal/application/usecases"
-	httpInterface "uala-challenge/internal/interfaces/http"
+	"uala-challenge/internal/application/services"
 	"uala-challenge/internal/infrastructure/storage"
+	httpInterface "uala-challenge/internal/interfaces/http"
 )
 
 func main() {
@@ -17,12 +17,12 @@ func main() {
 	tweetRepo := storage.NewTweetRepository(inMemoryStorage)
 	followRepo := storage.NewFollowRepository(inMemoryStorage)
 
-	// Initialize application layer (use cases)
-	tweetUseCase := usecases.NewTweetUseCase(tweetRepo, userRepo)
-	followUseCase := usecases.NewFollowUseCase(followRepo, tweetRepo)
+	// Initialize application layer (services)
+	tweetService := services.NewTweetService(tweetRepo, userRepo)
+	followService := services.NewFollowService(followRepo, tweetRepo)
 
 	// Initialize interface layer (HTTP handlers)
-	handler := httpInterface.NewHandler(tweetUseCase, followUseCase)
+	handler := httpInterface.NewHandler(tweetService, followService)
 	router := httpInterface.NewRouter(handler)
 
 	// Setup routes

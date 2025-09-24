@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"uala-challenge/internal/application/usecases"
+	"uala-challenge/internal/application/services"
 	"uala-challenge/internal/infrastructure/storage"
 )
 
@@ -19,10 +19,10 @@ func TestCompleteWorkflow(t *testing.T) {
 	tweetRepo := storage.NewTweetRepository(inMemoryStorage)
 	followRepo := storage.NewFollowRepository(inMemoryStorage)
 
-	tweetUseCase := usecases.NewTweetUseCase(tweetRepo, userRepo)
-	followUseCase := usecases.NewFollowUseCase(followRepo, tweetRepo)
+	tweetService := services.NewTweetService(tweetRepo, userRepo)
+	followService := services.NewFollowService(followRepo, tweetRepo)
 
-	handler := NewHandler(tweetUseCase, followUseCase)
+	handler := NewHandler(tweetService, followService)
 	router := NewRouter(handler)
 	httpRouter := router.SetupRoutes()
 
@@ -32,7 +32,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req := createTweetRequest("alice123", "Hello, world! This is my first tweet on the microblogging platform. #excited")
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusCreated {
 			t.Errorf("Expected status %d, got %d", http.StatusCreated, w.Code)
 		}
@@ -41,7 +41,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req = createTweetRequest("bob456", "Hey everyone! Just joined the microblogging platform. Excited to connect with you all! 🚀")
 		w = httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusCreated {
 			t.Errorf("Expected status %d, got %d", http.StatusCreated, w.Code)
 		}
@@ -50,7 +50,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req = createTweetRequest("charlie789", "Just finished reading an amazing book about software architecture. Clean Architecture principles are game-changing! 📚")
 		w = httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusCreated {
 			t.Errorf("Expected status %d, got %d", http.StatusCreated, w.Code)
 		}
@@ -59,7 +59,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req = createTweetRequest("dave999", "This tweet should NOT appear in Alice's timeline since she doesn't follow me.")
 		w = httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusCreated {
 			t.Errorf("Expected status %d, got %d", http.StatusCreated, w.Code)
 		}
@@ -71,7 +71,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req := createFollowRequest("alice123", "bob456")
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
 		}
@@ -80,7 +80,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req = createFollowRequest("alice123", "charlie789")
 		w = httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
 		}
@@ -89,7 +89,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req = createFollowRequest("alice123", "alice123")
 		w = httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("Expected status %d for self-follow, got %d", http.StatusBadRequest, w.Code)
 		}
@@ -145,7 +145,7 @@ func TestCompleteWorkflow(t *testing.T) {
 		req := createUnfollowRequest("alice123", "charlie789")
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
 		}
@@ -239,10 +239,10 @@ func TestCharacterLimitEnforcement(t *testing.T) {
 	tweetRepo := storage.NewTweetRepository(inMemoryStorage)
 	followRepo := storage.NewFollowRepository(inMemoryStorage)
 
-	tweetUseCase := usecases.NewTweetUseCase(tweetRepo, userRepo)
-	followUseCase := usecases.NewFollowUseCase(followRepo, tweetRepo)
+	tweetService := services.NewTweetService(tweetRepo, userRepo)
+	followService := services.NewFollowService(followRepo, tweetRepo)
 
-	handler := NewHandler(tweetUseCase, followUseCase)
+	handler := NewHandler(tweetService, followService)
 	router := NewRouter(handler)
 	httpRouter := router.SetupRoutes()
 
@@ -250,7 +250,7 @@ func TestCharacterLimitEnforcement(t *testing.T) {
 		req := createTweetRequest("user123", "This is a valid tweet within the 280 character limit.")
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusCreated {
 			t.Errorf("Expected status %d, got %d", http.StatusCreated, w.Code)
 		}
@@ -258,11 +258,11 @@ func TestCharacterLimitEnforcement(t *testing.T) {
 
 	t.Run("Tweet exceeding character limit", func(t *testing.T) {
 		longTweet := "This tweet is way too long and should be rejected by the system because it exceeds the 280 character limit that was specified in the requirements. Let me keep typing to make sure this definitely goes over the limit. This is a very long tweet that should definitely exceed 280 characters and get rejected by our validation system. I am still typing to make sure this is long enough to trigger the character limit validation. This should definitely be over 280 characters now and should be rejected."
-		
+
 		req := createTweetRequest("user123", longTweet)
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("Expected status %d for tweet exceeding limit, got %d", http.StatusBadRequest, w.Code)
 		}
@@ -272,7 +272,7 @@ func TestCharacterLimitEnforcement(t *testing.T) {
 		req := createTweetRequest("user123", "")
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("Expected status %d for empty tweet, got %d", http.StatusBadRequest, w.Code)
 		}
@@ -286,10 +286,10 @@ func TestErrorHandling(t *testing.T) {
 	tweetRepo := storage.NewTweetRepository(inMemoryStorage)
 	followRepo := storage.NewFollowRepository(inMemoryStorage)
 
-	tweetUseCase := usecases.NewTweetUseCase(tweetRepo, userRepo)
-	followUseCase := usecases.NewFollowUseCase(followRepo, tweetRepo)
+	tweetService := services.NewTweetService(tweetRepo, userRepo)
+	followService := services.NewFollowService(followRepo, tweetRepo)
 
-	handler := NewHandler(tweetUseCase, followUseCase)
+	handler := NewHandler(tweetService, followService)
 	router := NewRouter(handler)
 	httpRouter := router.SetupRoutes()
 
@@ -299,7 +299,7 @@ func TestErrorHandling(t *testing.T) {
 		// No X-User-ID header
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("Expected status %d for missing user ID, got %d", http.StatusBadRequest, w.Code)
 		}
@@ -311,7 +311,7 @@ func TestErrorHandling(t *testing.T) {
 		req.Header.Set("X-User-ID", "user123")
 		w := httptest.NewRecorder()
 		httpRouter.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("Expected status %d for invalid JSON, got %d", http.StatusBadRequest, w.Code)
 		}
